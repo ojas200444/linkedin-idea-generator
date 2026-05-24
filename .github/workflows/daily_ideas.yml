@@ -1,0 +1,38 @@
+name: 🧠 LinkedIn Daily Idea Generator
+
+on:
+  # Run every day at 9:30 AM IST (4:00 AM UTC) — ideas ready well before 12 PM post
+  schedule:
+    - cron: '0 4 * * *'
+
+  # Also allow manual trigger from GitHub UI (Actions tab → Run workflow)
+  workflow_dispatch:
+
+jobs:
+  generate-ideas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: 🚀 Generate LinkedIn post ideas
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          SPREADSHEET_NAME: "LinkedIn Post Ideas"
+        run: python main.py
+
+      - name: 📋 Show log on failure
+        if: failure()
+        run: echo "Job failed — check the step above for details"
