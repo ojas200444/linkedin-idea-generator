@@ -26,6 +26,7 @@ from scrapers.quora_scraper import get_quora_trends
 # ─── Core ────────────────────────────────────────────────────────────────────
 from ai_generator import generate_post_ideas
 from sheets_writer import write_ideas_to_sheet
+from idea_history import filter_duplicates, save_to_history
 
 
 def banner():
@@ -100,11 +101,28 @@ def run(dry_run: bool = False, test_mode: bool = False):
         sys.exit(1)
 
     print(f"✅ Generated {len(ideas)} post ideas\n")
+
+    # ── Step 2b: Deduplicate Against History ────────────────────────────────
+    print("STEP 2b — DEDUPLICATION CHECK\n")
+    ideas, dropped = filter_duplicates(ideas)
+    if dropped:
+        print(f"   ⚠️  {len(dropped)} idea(s) dropped (too similar to past ideas)")
+    else:
+        print("   ✅ No duplicates found — all ideas are fresh!")
+
+    if not ideas:
+        print("\n❌ All generated ideas were duplicates. Run again tomorrow or check idea_history.json.")
+        sys.exit(0)
+
+    print(f"\n✅ {len(ideas)} fresh ideas ready\n")
     print_ideas(ideas)
 
     # ── Step 3: Write to Google Sheets ──────────────────────────────────────
     if dry_run:
         print("ℹ️  Dry-run mode — skipping Google Sheets write.\n")
+        # Still save to history so future runs avoid these topics
+        print("STEP 3 — SAVING TO HISTORY\n")
+        save_to_history(ideas)
         return
 
     print("STEP 3 — WRITING TO GOOGLE SHEETS\n")
@@ -112,6 +130,8 @@ def run(dry_run: bool = False, test_mode: bool = False):
         count = write_ideas_to_sheet(ideas)
         print(f"\n✅ Done! {count} ideas added to your Google Sheet.")
         print("   Open Google Sheets and search for 'LinkedIn Post Ideas'\n")
+        # Save to history after a successful write
+        save_to_history(ideas)
     except FileNotFoundError as e:
         print(str(e))
         print("\n📖 See SETUP_GUIDE.md for Google Sheets setup instructions.\n")

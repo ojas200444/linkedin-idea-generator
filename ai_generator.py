@@ -6,18 +6,52 @@ Uses the new google.genai SDK.
 """
 
 import json
+import random
+from collections import defaultdict
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY, AUDIENCE_DESCRIPTION, POST_STYLE_EXAMPLES
+from idea_history import get_recent_topics
+
+# Maximum items contributed by any single source to the AI context.
+# Prevents any one feed (e.g. inc42) from dominating the content list.
+MAX_ITEMS_PER_SOURCE = 5
+
+# Total items sent to the AI (after balancing)
+MAX_TOTAL_ITEMS = 60
+
+
+def _balance_sources(scraped_items: list[dict]) -> list[dict]:
+    """
+    Cap each source's contribution to MAX_ITEMS_PER_SOURCE items,
+    then shuffle so the AI sees a varied mix rather than one big block
+    from a single publication.
+    """
+    per_source: dict[str, list[dict]] = defaultdict(list)
+    for item in scraped_items:
+        source = item.get("source", "Unknown")
+        per_source[source].append(item)
+
+    balanced = []
+    for source, items in per_source.items():
+        # Sort by score desc within source so we keep the best ones
+        items.sort(key=lambda x: x.get("score", 0), reverse=True)
+        balanced.extend(items[:MAX_ITEMS_PER_SOURCE])
+
+    random.shuffle(balanced)
+    return balanced[:MAX_TOTAL_ITEMS]
 
 
 def _build_prompt(scraped_items: list[dict]) -> str:
     """Build the Gemini prompt from scraped content."""
 
+    # Balance sources before building the content block
+    balanced_items = _balance_sources(scraped_items)
+
     content_lines = []
     # Build a lookup map: title → url (for AI to reference back)
     url_map = {}
-    for item in scraped_items[:50]:
+    for item in balanced_items:
         source = item.get("source", "Unknown")
         title = item.get("title", "").strip()
         url = item.get("url", "")
@@ -35,6 +69,13 @@ def _build_prompt(scraped_items: list[dict]) -> str:
     content_block = "\n".join(content_lines)
     examples_block = "\n".join(f"  • {ex}" for ex in POST_STYLE_EXAMPLES)
 
+    # Load recently generated topics so the AI avoids repeating them
+    recent_topics = get_recent_topics()
+    if recent_topics:
+        avoid_block = "\n".join(f"  - {t}" for t in recent_topics)
+    else:
+        avoid_block = "  (None yet — first run)"
+
     prompt = f"""You are a LinkedIn content strategist for an Indian creator who writes about business, marketing, economics, and current affairs.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -50,7 +91,16 @@ CREATOR'S PAST POST STYLE (learn from these)
 Notice the pattern: each post takes a real event, brand story, policy, or concept and gives it a business/life-lesson angle. They are NOT generic — they are specific, often controversial or surprising, and tell a story.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⛔ RECENTLY COVERED TOPICS — DO NOT REPEAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The creator has ALREADY published or saved ideas on these topics.
+Do NOT generate ideas that overlap with any of these — even with a different angle.
+Be strict: if a topic is essentially the same subject, skip it.
+{avoid_block}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TODAY'S TRENDING INTERNET CONTENT
+(sourced from Reddit, Hacker News, Google Trends, News RSS, Quora, Twitter/X, and more)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {content_block}
 
@@ -65,6 +115,10 @@ Rules:
 - The hook must be a strong opening sentence, not a question
 - Ideas should vary across categories
 - Prefer India-relevant or India-comparison angles where possible
+- CRITICAL: Draw from a WIDE variety of sources above — Reddit discussions, global tech news,
+  Quora questions, Google Trends, and international publications. Do NOT pick ideas only
+  from one news outlet. Spread the inspiration across at least 4 different sources.
+- Do NOT repeat any topic from the "RECENTLY COVERED TOPICS" list above.
 
 Categories to choose from:
   Marketing/Branding | Economics/Policy | Tech/Science | Psychology/Frameworks | India vs World | Entrepreneur Mindset | Current Affairs

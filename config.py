@@ -18,15 +18,34 @@ REDDIT_SUBREDDITS = [
 ]
 
 # ─── News RSS Feeds ───────────────────────────────────────────────────────────
+# Balanced mix: India startups + global tech + business + economics + Reddit-adjacent
 RSS_FEEDS = [
-    "https://feeds.bbci.co.uk/news/world/rss.xml",
-    "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
+    # ── India Startup / Business ──────────────────────────────────────────────
     "https://inc42.com/feed/",
     "https://yourstory.com/feed",
-    "https://techcrunch.com/feed/",
-    "https://www.moneycontrol.com/rss/business.xml",
+    "https://the-ken.com/feed/",                                    # The Ken — premium India business
+    "https://www.livemint.com/rss/news",                            # Mint — India business/economics
+    "https://www.thehindubusinessline.com/feeder/default.rss",      # Hindu Business Line
+
+    # ── India General News ────────────────────────────────────────────────────
+    "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
     "https://economictimes.indiatimes.com/rssfeedsdefault.cms",
+    "https://www.moneycontrol.com/rss/business.xml",
+
+    # ── Global Tech ───────────────────────────────────────────────────────────
+    "https://techcrunch.com/feed/",
     "https://www.theverge.com/rss/index.xml",
+    "https://hnrss.org/frontpage",                                   # Hacker News — tech/startup discussions
+    "https://www.wired.com/feed/rss",                               # Wired — tech culture + science
+    "https://www.technologyreview.com/feed/",                       # MIT Technology Review
+
+    # ── Global Business / Economics ───────────────────────────────────────────
+    "https://feeds.hbr.org/harvardbusiness",                        # Harvard Business Review
+    "https://feeds.bbci.co.uk/news/business/rss.xml",              # BBC Business
+    "https://feeds.bbci.co.uk/news/world/rss.xml",                 # BBC World
+
+    # ── Science & Future ─────────────────────────────────────────────────────
+    "https://www.scientificamerican.com/feed/rss/",                 # Scientific American
 ]
 
 # ─── Nitter Instances (Twitter mirror — no API key needed) ────────────────────
