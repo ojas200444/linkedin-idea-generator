@@ -31,8 +31,8 @@ jobs:
 
       - name: 🚀 Generate LinkedIn post ideas
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY_IdeaG }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON_IdeaG }}
           SPREADSHEET_NAME: "LinkedIn Post Ideas"
         run: python main.py
 
