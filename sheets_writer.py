@@ -22,6 +22,7 @@ SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}"
 HEADERS = [
     "Date",
     "Category",
+    "Recommended Format",
     "Post Idea",
     "Angle",
     "Hook Line",
@@ -92,7 +93,7 @@ def _ensure_headers(sheet):
     if not existing or existing[0] != HEADERS:
         sheet.insert_row(HEADERS, index=1)
         # Style the header row
-        sheet.format("A1:H1", {
+        sheet.format("A1:J1", {
             "backgroundColor": {"red": 0.2, "green": 0.2, "blue": 0.8},
             "textFormat": {"bold": True, "foregroundColor": {"red": 1, "green": 1, "blue": 1}},
         })
@@ -119,6 +120,7 @@ def write_ideas_to_sheet(ideas: list[dict]) -> int:
         rows.append([
             today,
             idea.get("category", ""),
+            idea.get("recommended_format", ""),
             idea.get("post_idea", ""),
             idea.get("angle", ""),
             idea.get("hook", ""),
