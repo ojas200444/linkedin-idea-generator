@@ -112,13 +112,21 @@ From the trending content above, generate exactly 8 high-quality LinkedIn post i
 Rules:
 - Each idea must be SPECIFIC (not generic like "The future of AI")
 - Take a unique angle that would spark discussion or surprise
-- The hook must be a strong opening sentence, not a question
 - Ideas should vary across categories
 - Prefer India-relevant or India-comparison angles where possible
 - CRITICAL: Draw from a WIDE variety of sources above — Reddit discussions, global tech news,
   Quora questions, Google Trends, and international publications. Do NOT pick ideas only
   from one news outlet. Spread the inspiration across at least 4 different sources.
 - Do NOT repeat any topic from the "RECENTLY COVERED TOPICS" list above.
+- CRITICAL FOR HOOKS: The hook (opening sentence) must not be a question. It MUST strictly follow one of these 4 specific hook types. Vary these types across your 8 generated ideas:
+  1. First-person confession type: Start with a personal/creator admission or story.
+     Example: "I was fired from my first startup..."
+  2. Contrarian/negation type: Make a counter-intuitive statement challenging conventional wisdom.
+     Example: "Most people don't leave when it gets hard..."
+  3. Short truth bomb type: A punchy, brief statement of 8 words or less that stops the scroll.
+     Example: "This is why you're stressed."
+  4. Listicle promise (N things) type: Introduce N key learnings, rules, or steps.
+     Example: "6 TED talks that will change..."
 
 Categories to choose from:
   Marketing/Branding | Economics/Policy | Tech/Science | Psychology/Frameworks | India vs World | Entrepreneur Mindset | Current Affairs
