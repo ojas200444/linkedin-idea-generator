@@ -40,24 +40,61 @@ def _similarity(a: str, b: str) -> float:
 
 def load_history() -> list[dict]:
     """
-    Load all past ideas from the history file.
-    Returns an empty list if the file doesn't exist yet.
+    Load all past ideas.
+    First tries to fetch from Google Sheets (remote source of truth).
+    Falls back to the local idea_history.json file.
     """
+    # 1. Try to load from Google Sheets
+    try:
+        from sheets_writer import _get_client, _get_or_create_sheet
+        client = _get_client()
+        sheet = _get_or_create_sheet(client)
+        rows = sheet.get_all_values()
+        if rows and len(rows) > 1:
+            headers = rows[0]
+            try:
+                idea_idx = headers.index("Post Idea")
+                cat_idx = headers.index("Category")
+                angle_idx = headers.index("Angle")
+            except ValueError:
+                # Fallback indices if header names differ
+                idea_idx = 2
+                cat_idx = 1
+                angle_idx = 3
+
+            history = []
+            for row in rows[1:]:
+                if len(row) > idea_idx and row[idea_idx].strip():
+                    history.append({
+                        "post_idea": row[idea_idx].strip(),
+                        "category": row[cat_idx].strip() if len(row) > cat_idx else "",
+                        "angle": row[angle_idx].strip() if len(row) > angle_idx else "",
+                    })
+            if history:
+                print(f"   [History] ✅ Loaded {len(history)} past ideas from Google Sheets (source of truth).")
+                return history
+    except Exception as e:
+        print(f"   [History] Google Sheets history loading unavailable: {e}")
+        print("             ↳ Falling back to local history file check...")
+
+    # 2. Fallback to local file check
     if not os.path.exists(_HISTORY_FILE):
         return []
     try:
         with open(_HISTORY_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return data if isinstance(data, list) else []
+        if isinstance(data, list):
+            print(f"   [History] Loaded {len(data)} past ideas from local file.")
+            return data
     except (json.JSONDecodeError, OSError) as e:
-        print(f"   [History] Warning — could not read history file: {e}")
-        return []
+        print(f"   [History] Warning — could not read local history file: {e}")
+    return []
 
 
 def save_to_history(ideas: list[dict]) -> None:
     """
-    Append newly generated ideas (with a timestamp) to the history file.
-    Creates the file if it doesn't exist.
+    Append newly generated ideas to the local history file as a backup.
+    Note: Remote Google Sheet writes are handled by write_ideas_to_sheet() separately.
     """
     if not ideas:
         return
@@ -65,21 +102,31 @@ def save_to_history(ideas: list[dict]) -> None:
     existing = load_history()
     today = datetime.now().strftime("%Y-%m-%d")
 
-    for idea in ideas:
-        existing.append({
-            "date": today,
-            "post_idea": idea.get("post_idea", "").strip(),
-            "category": idea.get("category", ""),
-            "angle": idea.get("angle", ""),
-        })
+    new_entries = []
+    # Deduplicate within new ideas to avoid double-adding if they match existing
+    existing_titles = {entry.get("post_idea", "").strip().lower() for entry in existing}
 
+    for idea in ideas:
+        title = idea.get("post_idea", "").strip()
+        if title.lower() not in existing_titles:
+            new_entries.append({
+                "date": today,
+                "post_idea": title,
+                "category": idea.get("category", ""),
+                "angle": idea.get("angle", ""),
+            })
+
+    if not new_entries:
+        return
+
+    # Merge and save local copy
+    existing.extend(new_entries)
     try:
         with open(_HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(existing, f, indent=2, ensure_ascii=False)
-        print(f"   [History] ✅ Saved {len(ideas)} ideas to history "
-              f"(total: {len(existing)} recorded ideas)")
+        print(f"   [History] ✅ Saved local backup of {len(new_entries)} new ideas (total: {len(existing)})")
     except OSError as e:
-        print(f"   [History] Warning — could not save history: {e}")
+        print(f"   [History] Warning — could not save local backup: {e}")
 
 
 def get_recent_topics(n: int = RECENT_TOPICS_FOR_PROMPT) -> list[str]:
