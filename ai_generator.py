@@ -77,6 +77,9 @@ def _build_prompt(scraped_items: list[dict]) -> str:
         avoid_block = "  (None yet — first run)"
 
     prompt = f"""You are a LinkedIn content strategist for an Indian creator who writes about business, marketing, economics, and current affairs.
+Your goal is to optimize every generated idea for SHARES (not just likes or comments). Ask yourself: "Would someone forward this post to a friend or colleague?"
+
+You MUST follow the guidelines from the "LinkedIn Post Rulebook" (YOSO Winning-Patterns Report):
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TARGET AUDIENCE
@@ -88,7 +91,7 @@ CREATOR'S PAST POST STYLE (learn from these)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {examples_block}
 
-Notice the pattern: each post takes a real event, brand story, policy, or concept and gives it a business/life-lesson angle. They are NOT generic — they are specific, often controversial or surprising, and tell a story.
+Notice the pattern: each post takes a real event, brand story, policy, or concept and gives it a business/life-lesson/resilience angle. They are NOT generic — they are specific, often controversial or surprising, and tell a story.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⛔ RECENTLY COVERED TOPICS — DO NOT REPEAT
@@ -110,26 +113,40 @@ TASK
 From the trending content above, generate exactly 8 high-quality LinkedIn post ideas for this creator.
 
 Rules:
-- Each idea must be SPECIFIC (not generic like "The future of AI")
-- Take a unique angle that would spark discussion or surprise
-- Ideas should vary across categories
-- Prefer India-relevant or India-comparison angles where possible
+- Each idea must be SPECIFIC (not generic like "The future of AI").
+- Take a unique angle that would spark discussion or surprise.
+- Prefer India-relevant or India-comparison angles where possible.
 - CRITICAL: Draw from a WIDE variety of sources above — Reddit discussions, global tech news,
-  Quora questions, Google Trends, and international publications. Do NOT pick ideas only
-  from one news outlet. Spread the inspiration across at least 4 different sources.
+  Quora questions, Google Trends, and international publications. Spread the inspiration across at least 4 different sources.
 - Do NOT repeat any topic from the "RECENTLY COVERED TOPICS" list above.
-- CRITICAL FOR HOOKS: The hook (opening sentence) must not be a question. It MUST strictly follow one of these 4 specific hook types. Vary these types across your 8 generated ideas:
-  1. First-person confession type: Start with a personal/creator admission or story.
-     Example: "I was fired from my first startup..."
-  2. Contrarian/negation type: Make a counter-intuitive statement challenging conventional wisdom.
-     Example: "Most people don't leave when it gets hard..."
-  3. Short truth bomb type: A punchy, brief statement of 8 words or less that stops the scroll.
-     Example: "This is why you're stressed."
-  4. Listicle promise (N things) type: Introduce N key learnings, rules, or steps.
-     Example: "6 TED talks that will change..."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LINKEDIN POST RULEBOOK SPECIFICATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. THE HOOK (Opening Line - Non-Negotiable):
+   - Line 1 must stand alone. It must be powerful and readable without Line 2.
+   - Never open with a question. Never open with a stat.
+   - You must strictly use one of these 5 Hook Templates (vary them across the 8 ideas):
+     - Template 1: The Confession -> "I [did/lost/failed at/got fired from] [X]."
+     - Template 2: The 'Most People' Flip -> "Most people [common belief]. The truth is [contrarian Y]."
+     - Template 3: The Reframe -> "[Common concept] isn't about [obvious/expected cause]."
+     - Template 4: The One-Line Verdict -> "[Sharp, counterintuitive claim stated as flat truth]."
+     - Template 5: The Numbered Promise -> "[Number] [things/lessons] that [specific payoff/outcome]."
+
+2. TOPIC SELECTION (Identity beats Information):
+   Choose topics that make the reader feel something about who THEY are (self-belief, career decisions, management, failure) rather than just delivering dry facts.
+
+3. STRUCTURE & LENGTH (The Barbell Rule):
+   Categorize each idea's writing style recommendation as one of these two:
+   - "Truth Bomb": Extremely punchy statement (under 10 words total).
+   - "Deep Story": Fully developed narrative in 150-200 or 300+ words using the "4-Beat Micro-Story" framework:
+     - Beat 1: Open mid-scene with an anonymous, specific character (no setup).
+     - Beat 2: Raise the stakes (tension or conflict).
+     - Beat 3: Reveal the turn (non-obvious insight/reframe).
+     - Beat 4: Hand it to the reader (transferable principle - never end with a question or link).
 
 Categories to choose from:
-  Marketing/Branding | Economics/Policy | Tech/Science | Psychology/Frameworks | India vs World | Entrepreneur Mindset | Current Affairs
+  Mindset & Resilience | Career & Networks | Skills & Leadership | Economics & Policy | Marketing & Brands | Tech & Innovation | Current Affairs
 
 Return ONLY valid JSON — no markdown, no explanation, just the JSON object:
 
@@ -138,11 +155,12 @@ Return ONLY valid JSON — no markdown, no explanation, just the JSON object:
     {{
       "post_idea": "Concise topic title (e.g. 'How Zepto broke Blinkit's pricing strategy')",
       "angle": "The unique take or framing for this post",
-      "hook": "The exact opening sentence that would stop the scroll",
-      "category": "One of the 6 categories above",
-      "why_it_works": "1-2 sentences on why this resonates with the target audience",
-      "source_inspiration": "Title of the scraped item that inspired this idea (copy it exactly from the content list above)",
-      "source_url": "The URL from the content list for that item (copy it exactly, or empty string if none)"
+      "hook": "The exact opening sentence matching one of the 5 templates (no questions, no stats)",
+      "category": "One of the categories above",
+      "recommended_format": "Either 'Truth Bomb' or 'Deep Story (4-Beat)'",
+      "why_it_works": "1-2 sentences on why this resonates and how it drives shares (identity angle)",
+      "source_inspiration": "Title of the scraped item that inspired this idea (copy it exactly from the list above)",
+      "source_url": "The URL from the list for that item (copy it exactly, or empty string if none)"
     }}
   ]
 }}"""
