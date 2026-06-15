@@ -1,9 +1,9 @@
 name: 🧠 LinkedIn Daily Idea Generator
 
 on:
-  # Run every day at 9:30 AM IST (4:00 AM UTC) — ideas ready well before 12 PM post
+  # Run every day at 6:30 AM IST (1:00 AM UTC) — leaves plenty of room for GitHub queue delays
   schedule:
-    - cron: '0 4 * * *'
+    - cron: '0 1 * * *'
 
   # Also allow manual trigger from GitHub UI (Actions tab → Run workflow)
   workflow_dispatch:
